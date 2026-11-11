@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#00A1E9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CTA 名片庫">
+<title>CTA 名片庫</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2300A1E9'/%3E%3Crect x='12' y='18' width='40' height='28' rx='4' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M20 30h12M20 37h20' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 版面參考 claude.ai CTA 名片庫原型：手機優先單欄、頂部固定搜尋列、迷你名片列表、底部抽屜顯示詳細資料。
+   主色用築匠色 #00A1E9；按鈕與連結用加深的築匠藍以確保白字與連結看得清楚；不用淺灰字。 */
+:root{
+  --bg:#eef3f7; --surface:#ffffff; --sunk:#e4ebf1; --ink:#111b24; --muted:#34404b; --line:#cfd9e2;
+  --brand:#00A1E9; --accent:#0071a8; --accent-ink:#ffffff; --accent-soft:#e3f4fc;
+  --danger:#a8261b; --danger-soft:#fbeae7; --ok:#17703f; --warn:#7a4a00; --warn-soft:#fdf2dc;
+  --shadow:0 1px 2px rgba(17,27,36,.06),0 4px 14px rgba(17,27,36,.06);
+  --f-body:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1318; --surface:#162029; --sunk:#10181f; --ink:#e8eef4; --muted:#c3cdd6; --line:#2a3743;
+  --brand:#33b8f0; --accent:#5cc6f5; --accent-ink:#06202e; --accent-soft:#12303f;
+  --danger:#ff9a8c; --danger-soft:#3a1d1a; --ok:#6fd49a; --warn:#f2bf66; --warn-soft:#33270f;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1318; --surface:#162029; --sunk:#10181f; --ink:#e8eef4; --muted:#c3cdd6; --line:#2a3743;
+  --brand:#33b8f0; --accent:#5cc6f5; --accent-ink:#06202e; --accent-soft:#12303f;
+  --danger:#ff9a8c; --danger-soft:#3a1d1a; --ok:#6fd49a; --warn:#f2bf66; --warn-soft:#33270f;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;-webkit-tap-highlight-color:transparent;padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:760px;margin:0 auto}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* 登入 */
+.login{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px 16px}
+.lg-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:28px 22px 22px}
+.lg-logo{width:52px;height:52px;border-radius:14px;background:var(--brand);display:grid;place-items:center;margin-bottom:14px}
+.lg-logo svg{width:30px;height:30px}
+.lg-card h1{margin:0 0 4px;font-size:22px}
+.lg-card p{margin:0 0 18px;color:var(--muted);font-size:14px}
+.lg-card input[type=password]{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);padding:0 14px;font-size:17px;letter-spacing:.08em}
+.lg-card input[type=password]:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.remember{display:flex;align-items:center;gap:8px;margin:12px 0 16px;font-size:14px}
+.remember input{width:18px;height:18px;accent-color:var(--accent)}
+.lg-err{margin:0 0 12px;padding:9px 12px;border-radius:9px;background:var(--danger-soft);color:var(--danger);font-size:14px}
+
+/* 頂部 */
+header{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+header::before{content:"";display:block;height:3px;background:var(--brand)}
+.top{display:flex;align-items:center;gap:12px;padding-block:10px 10px}
+.brand{display:flex;flex-direction:column;min-width:0;flex:1}
+.brand h1{margin:0;font-size:19px;font-weight:700;letter-spacing:.02em}
+.brand small{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;height:38px;min-width:38px;padding:0 12px;display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.iconbtn svg{width:18px;height:18px}
+.search{position:relative;padding-bottom:10px}
+.search input{width:100%;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);padding:0 44px 0 42px;font-size:16px}
+.search input:focus{background:var(--surface);border-color:var(--accent);outline:none}
+.search .lens{position:absolute;left:13px;top:13px;width:20px;height:20px;color:var(--muted)}
+.search .clear{position:absolute;right:6px;top:5px;width:36px;height:36px;border:0;background:none;color:var(--muted);font-size:22px;border-radius:999px}
+.bar{display:flex;align-items:center;gap:8px;padding-bottom:10px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--sunk);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;border-radius:999px;padding:5px 14px;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:700}
+.bar select{border:1px solid var(--line);background:var(--surface);border-radius:999px;height:34px;padding:0 10px;font-size:13.5px;max-width:46%}
+.bar .sp{flex:1}
+
+.note{margin:14px 0 0;padding:10px 12px;border-radius:var(--r);background:var(--warn-soft);color:var(--warn);font-size:14px}
+
+/* 列表 */
+main{padding-block:12px 40px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:11px 12px;box-shadow:var(--shadow);cursor:pointer}
+.mark{flex:none;width:44px;height:44px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:18px;background:var(--accent-soft);color:var(--accent)}
+.it-body{min-width:0;flex:1}
+.it-l1{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.it-name{font-weight:700;font-size:16px}
+.it-title{color:var(--muted);font-size:13px}
+.it-co{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it-tel{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quick{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--sunk);border-radius:999px;height:30px;padding:0 11px;font-size:13px;display:inline-flex;align-items:center;gap:5px;color:var(--ink)}
+.chip svg{width:14px;height:14px}
+.chip:active{background:var(--accent-soft);border-color:var(--accent)}
+mark{background:color-mix(in srgb,var(--brand) 28%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+
+.co{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.co-head{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;text-align:left;padding:12px}
+.co-head .mark{background:var(--sunk);color:var(--ink)}
+.co-name{font-weight:700;min-width:0;flex:1;overflow-wrap:anywhere}
+.count{flex:none;font-family:var(--f-mono);font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 9px}
+.co-people{border-top:1px solid var(--line);display:flex;flex-direction:column}
+.co-people .item{border:0;border-radius:0;box-shadow:none;border-bottom:1px solid var(--line)}
+.co-people .item:last-child{border-bottom:0}
+.more{display:block;margin:12px auto 0}
+
+.empty{text-align:center;padding:48px 12px;color:var(--muted)}
+.empty h2{color:var(--ink);font-size:18px;margin:0 0 6px}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;height:44px;padding:0 16px;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn.wide{width:100%}
+.btn svg{width:18px;height:18px}
+.btn:disabled{opacity:.55;cursor:default}
+
+/* 抽屜 */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(8,14,20,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding-block:8px calc(20px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overscroll-behavior:contain}
+@media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:18px;max-height:88%}}
+.grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:4px auto 10px}
+.sh-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sh-head h2{margin:0;font-size:18px;flex:1;min-width:0}
+.x{border:0;background:var(--sunk);width:34px;height:34px;border-radius:999px;font-size:18px;color:var(--ink)}
+
+.biz{aspect-ratio:90/54;width:100%;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;padding:6% 7%;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(135deg,var(--surface),var(--sunk));position:relative}
+.biz::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--brand)}
+.bz-co{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.bz-name{font-size:24px;font-weight:700;line-height:1.2}
+.bz-en{font-size:13px;color:var(--muted)}
+.bz-title{font-size:13px;color:var(--muted)}
+.bz-line{font-size:12px;color:var(--muted);font-family:var(--f-mono);overflow-wrap:anywhere}
+
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.acts .wide{grid-column:1/-1}
+.rows{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.row{display:flex;align-items:center;gap:10px;padding:9px 6px 9px 12px;border-bottom:1px solid var(--line);min-height:48px}
+.row:last-child{border-bottom:0}
+.row .k{flex:none;width:68px;font-size:12.5px;color:var(--muted);letter-spacing:.04em}
+.row .v{flex:1;min-width:0;overflow-wrap:anywhere;user-select:text;white-space:pre-line}
+.row .v a{color:var(--accent);text-decoration:none}
+.row .cp{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);height:32px;padding:0 10px;border-radius:8px;font-size:13px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12.5px;padding:1px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+
+.menu-sec{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+.menu-sec h3{margin:0 0 4px;font-size:15px}
+.menu-sec p{margin:0 0 10px;font-size:13.5px;color:var(--muted)}
+
+.toast{position:fixed;z-index:40;left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
+.spin{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:sp .8s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:3s}}
+</style>
+</head>
+<body>
+
+<!-- 登入 -->
+<section class="login" id="login">
+  <form class="lg-card" id="lgForm" autocomplete="on">
+    <div class="lg-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 11h5M7 14.5h9"/></svg></div>
+    <h1>CTA 名片庫</h1>
+    <p>築匠建築師事務所・請輸入密碼</p>
+    <div class="lg-err" id="lgErr" hidden></div>
+    <input type="text" name="username" value="CTA" autocomplete="username" hidden>
+    <input type="password" id="pw" name="password" autocomplete="current-password" placeholder="密碼" aria-label="密碼" required>
+    <label class="remember"><input type="checkbox" id="remember" checked> 記住這支手機（下次不用再輸入）</label>
+    <button class="btn primary wide" id="lgBtn" type="submit">進入名片庫</button>
+  </form>
+</section>
+
+<!-- 主畫面 -->
+<div id="app" hidden>
+<header>
+  <div class="gut"><div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <h1>CTA 名片庫</h1>
+        <small id="stat">載入中…</small>
+      </div>
+      <button class="iconbtn" id="menuBtn" aria-label="工具選單">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <span>工具</span>
+      </button>
+    </div>
+    <div class="search">
+      <svg class="lens" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" inputmode="search" autocomplete="off" placeholder="搜尋公司、姓名、電話、職稱、地址…" aria-label="搜尋名片">
+      <button class="clear" id="qClear" aria-label="清除搜尋" hidden>×</button>
+    </div>
+    <div class="bar">
+      <div class="seg" role="group" aria-label="檢視方式">
+        <button id="vPeople" aria-pressed="true">依人員</button>
+        <button id="vCompany" aria-pressed="false">依公司</button>
+      </div>
+      <span class="sp"></span>
+      <select id="tag" aria-label="分類"><option value="">全部分類</option></select>
+      <select id="sort" aria-label="排序">
+        <option value="new">最新建檔</option>
+        <option value="company">公司名稱</option>
+        <option value="name">姓名</option>
+      </select>
+    </div>
+  </div></div>
+</header>
+<main class="gut"><div class="wrap">
+  <div id="notice" class="note" hidden></div>
+  <div id="list" class="list"></div>
+</div></main>
+</div>
+
+<div class="scrim" id="scrim" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* ===== 設定：Google Apps Script 網頁應用程式網址（不是密碼，放這裡沒關係） ===== */
+const API = window.CTA_API || 'https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec';
+
+const 顯示欄 = ['英文姓名','公司','部門','職稱','手機','電話','分機','傳真','Email','地址','網站','統一編號','分類標籤','備註','建檔日期','最後更新'];
+const 搜尋欄 = ['編號','姓名','英文姓名','公司','部門','職稱','手機','電話','分機','傳真','Email','地址','網站','統一編號','分類標籤','備註'];
+const K_PW='cta_nc_pw', K_DATA='cta_nc_data', K_VIEW='cta_nc_view', K_SORT='cta_nc_sort';
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s??'').toLowerCase().normalize('NFKC').replace(/[\s\-–()（）.+\/_#]/g,'');
+const coKey=s=>norm(s).replace(/(股份)?有限公司$|公司$|co\.?,?ltd\.?$|inc\.?$|corp\.?$/i,'')||norm(s);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const 圖={
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+  copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>',
+  dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M4 19h16"/></svg>'
+};
+
+let cards=[], updatedAt='', pw='';
+let view=store.get(K_VIEW)==='company'?'company':'people', sortBy=store.get(K_SORT)||'new', tagSel='', query='', openCo=new Set(), limit=120;
+
+/* ===== 登入與載入 ===== */
+const 錯誤說明={wrong_password:'密碼不對，請再試一次。',locked:'錯誤次數太多，已暫時鎖定，請 15 分鐘後再試。',not_initialized:'後端尚未完成設定。'};
+async function 抓資料(p){
+  const r=await fetch(API+'?pw='+encodeURIComponent(p),{cache:'no-store'});
+  if(!r.ok)throw new Error('連線失敗（'+r.status+'）');
+  const j=await r.json();
+  if(!j.ok){const e=new Error(錯誤說明[j.error]||('讀取失敗：'+j.error));e.code=j.error;throw e;}
+  return j;
+}
+function 套用(j){
+  const h=j.header||[];
+  cards=(j.rows||[]).map((r,i)=>{const o={_i:i};h.forEach((k,x)=>o[k]=String(r[x]??'').trim());o._hay=norm(搜尋欄.map(k=>o[k]).join('|'));return o;})
+    .filter(o=>o['姓名']||o['英文姓名']||o['公司']);
+  updatedAt=j.updatedAt||'';
+  const tags=new Map();
+  cards.forEach(c=>splitTags(c['分類標籤']).forEach(t=>tags.set(t,(tags.get(t)||0)+1)));
+  const sel=$('#tag');const keep=sel.value;
+  sel.innerHTML='<option value="">全部分類</option>'+[...tags.entries()].sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<option value="${esc(t)}">${esc(t)}（${n}）</option>`).join('');
+  sel.value=tags.has(keep)?keep:'';tagSel=sel.value;
+  renderList();
+}
+const splitTags=s=>String(s||'').split(/[、,，;；]/).map(x=>x.trim()).filter(Boolean);
+
+function 顯示主畫面(){ $('#login').hidden=true; $('#app').hidden=false; }
+function 顯示登入(msg){
+  $('#app').hidden=true; $('#login').hidden=false;
+  const e=$('#lgErr'); e.hidden=!msg; e.textContent=msg||'';
+  setTimeout(()=>$('#pw').focus(),50);
+}
+
+$('#lgForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();
+  const p=$('#pw').value.trim(); if(!p)return;
+  const b=$('#lgBtn'); b.disabled=true; b.innerHTML='<span class="spin"></span>&nbsp;驗證中…'; $('#lgErr').hidden=true;
+  try{
+    const j=await 抓資料(p);
+    pw=p;
+    if($('#remember').checked){store.set(K_PW,p);store.set(K_DATA,JSON.stringify(j));}else{store.del(K_PW);store.del(K_DATA);}
+    $('#pw').value=''; 顯示主畫面(); 套用(j);
+  }catch(e){ const m=$('#lgErr'); m.hidden=false; m.textContent=e.message||'連線失敗，請檢查網路。'; }
+  finally{ b.disabled=false; b.textContent='進入名片庫'; }
+});
+
+async function 重新整理(安靜){
+  if(!pw)return;
+  if(!安靜)setNotice('<span class="spin"></span>&nbsp;更新中…');
+  try{
+    const j=await 抓資料(pw);
+    if(store.get(K_PW))store.set(K_DATA,JSON.stringify(j));
+    setNotice(''); 套用(j); if(!安靜)toast('已更新到最新資料');
+  }catch(e){
+    if(e.code==='wrong_password'){登出(true);顯示登入('密碼已變更，請重新輸入。');return;}
+    setNotice('目前連不上雲端，畫面上是上次儲存的資料。'+(e.message?'（'+esc(e.message)+'）':''));
+  }
+}
+function 登出(安靜){store.del(K_PW);store.del(K_DATA);pw='';cards=[];closeSheet();if(!安靜)顯示登入('');}
+
+(function 啟動(){
+  $('#sort').value=sortBy; setView(view,true);
+  const p=store.get(K_PW);
+  if(!p){顯示登入('');return;}
+  pw=p; 顯示主畫面();
+  const c=store.get(K_DATA);
+  if(c){try{套用(JSON.parse(c));}catch(e){}}
+  重新整理(!!c);
+})();
+
+function setNotice(t){const n=$('#notice');n.hidden=!t;n.innerHTML=t;}
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2200);}
+
+/* ===== 搜尋與列表 ===== */
+function filtered(){
+  const toks=query.trim().split(/\s+/).map(norm).filter(Boolean);
+  let r=cards.filter(c=>(!tagSel||splitTags(c['分類標籤']).includes(tagSel))&&toks.every(t=>c._hay.includes(t)));
+  const coll=new Intl.Collator('zh-Hant-TW');
+  if(sortBy==='company')r.sort((a,b)=>coll.compare(a['公司']||'\uffff',b['公司']||'\uffff')||coll.compare(a['姓名'],b['姓名']));
+  else if(sortBy==='name')r.sort((a,b)=>coll.compare(a['姓名']||a['英文姓名']||'\uffff',b['姓名']||b['英文姓名']||'\uffff'));
+  else r.sort((a,b)=>(b['建檔日期']||'').localeCompare(a['建檔日期']||'')||(Number(b['編號'])||0)-(Number(a['編號'])||0));
+  return r;
+}
+function hl(text){
+  text=String(text??'');const toks=query.trim().split(/\s+/).filter(Boolean);
+  if(!toks.length||!text)return esc(text);
+  const re=new RegExp('('+toks.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','gi');
+  return text.split(re).map((p,i)=>i%2?'<mark>'+esc(p)+'</mark>':esc(p)).join('');
+}
+const 首字=c=>esc((c['姓名']||c['英文姓名']||c['公司']||'?').replace(/^[\s(（]+/,'').charAt(0).toUpperCase());
+const 主電話=c=>c['手機']||(c['電話']?c['電話']+(c['分機']?' #'+c['分機']:''):'');
+function itemHTML(c){
+  const sub=[c['職稱'],c['部門']].filter(Boolean).join('・');
+  const tel=主電話(c);
+  return `<div class="item" role="button" tabindex="0" data-i="${c._i}">
+    <div class="mark">${首字(c)}</div>
+    <div class="it-body">
+      <div class="it-l1"><span class="it-name">${hl(c['姓名']||c['英文姓名']||'（未填姓名）')}</span>${sub?`<span class="it-title">${hl(sub)}</span>`:''}</div>
+      ${c['公司']?`<div class="it-co">${hl(c['公司'])}</div>`:''}
+      ${tel||c['Email']?`<div class="it-tel mono">${hl([tel,c['Email']].filter(Boolean).join('　'))}</div>`:''}
+      ${tel||c['Email']?`<div class="quick">${tel?`<button class="chip" data-copy="${esc(tel)}" data-what="電話">${圖.copy}電話</button>`:''}${c['Email']?`<button class="chip" data-copy="${esc(c['Email'])}" data-what="Email">${圖.copy}Email</button>`:''}</div>`:''}
+    </div></div>`;
+}
+function renderList(){
+  const r=filtered();
+  const cos=new Set(cards.map(c=>coKey(c['公司'])).filter(Boolean));
+  $('#stat').textContent=`共 ${cards.length} 張・${cos.size} 家公司${updatedAt?'・更新 '+updatedAt:''}`;
+  const list=$('#list');
+  if(!cards.length){list.innerHTML='<div class="empty"><p>正在讀取名片資料…</p></div>';return;}
+  if(!r.length){list.innerHTML=`<div class="empty"><h2>找不到「${esc(query)}」</h2><p>試試公司簡稱、姓氏，或電話的後四碼。</p></div>`;return;}
+  if(view==='people'){
+    list.innerHTML=r.slice(0,limit).map(itemHTML).join('')+(r.length>limit?`<button class="btn more" id="more">再顯示 ${Math.min(120,r.length-limit)} 筆（共 ${r.length} 筆）</button>`:'');
+    return;
+  }
+  const groups=new Map();
+  for(const c of r){const k=coKey(c['公司'])||'__none';if(!groups.has(k))groups.set(k,{name:c['公司']||'（未填公司）',items:[]});groups.get(k).items.push(c);}
+  const coll=new Intl.Collator('zh-Hant-TW');
+  const arr=[...groups.entries()].sort((a,b)=>a[0]==='__none'?1:b[0]==='__none'?-1:(b[1].items.length-a[1].items.length)||coll.compare(a[1].name,b[1].name));
+  const autoOpen=query.trim()&&r.length<=60;
+  list.innerHTML=arr.map(([k,g])=>{
+    const open=autoOpen||openCo.has(k);
+    return `<section class="co"><button class="co-head" data-co="${esc(k)}" aria-expanded="${open}">
+      <div class="mark">${esc(g.name.charAt(0))}</div><div class="co-name">${hl(g.name)}</div><span class="count">${g.items.length} 人</span></button>
+      ${open?`<div class="co-people">${g.items.map(itemHTML).join('')}</div>`:''}</section>`;
+  }).join('');
+}
+let qT;
+$('#q').addEventListener('input',e=>{query=e.target.value;$('#qClear').hidden=!query;limit=120;clearTimeout(qT);qT=setTimeout(renderList,80);});
+$('#qClear').addEventListener('click',()=>{query='';$('#q').value='';$('#qClear').hidden=true;renderList();$('#q').focus();});
+$('#sort').addEventListener('change',e=>{sortBy=e.target.value;store.set(K_SORT,sortBy);renderList();});
+$('#tag').addEventListener('change',e=>{tagSel=e.target.value;limit=120;renderList();});
+function setView(v,silent){view=v;$('#vPeople').setAttribute('aria-pressed',v==='people');$('#vCompany').setAttribute('aria-pressed',v==='company');store.set(K_VIEW,v);if(!silent)renderList();}
+$('#vPeople').onclick=()=>setView('people');$('#vCompany').onclick=()=>setView('company');
+$('#list').addEventListener('click',e=>{
+  const cp=e.target.closest('[data-copy]');if(cp){e.stopPropagation();copyText(cp.dataset.copy,cp.dataset.what);return;}
+  if(e.target.closest('#more')){limit+=120;renderList();return;}
+  const co=e.target.closest('.co-head');if(co){const k=co.dataset.co;openCo.has(k)?openCo.delete(k):openCo.add(k);renderList();return;}
+  const it=e.target.closest('.item');if(it)openDetail(+it.dataset.i);
+});
+$('#list').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList.contains('item'))openDetail(+e.target.dataset.i);});
+
+/* ===== 複製 ===== */
+async function copyText(t,what){
+  try{await navigator.clipboard.writeText(t);toast('已複製'+(what?what+'：':'')+t);}
+  catch(e){
+    const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    let ok=false;try{ok=document.execCommand('copy');}catch(_){}
+    ta.remove();toast(ok?'已複製'+(what?what+'：':'')+t:'無法自動複製，請長按文字複製');
+  }
+}
+
+/* ===== 抽屜 ===== */
+function openSheet(html){const s=$('#sheet');s.innerHTML='<div class="grab"></div>'+html;$('#scrim').hidden=false;s.scrollTop=0;document.body.style.overflow='hidden';}
+function closeSheet(){$('#scrim').hidden=true;$('#sheet').innerHTML='';document.body.style.overflow='';}
+$('#scrim').addEventListener('click',e=>{if(e.target.id==='scrim'||e.target.closest('.x'))closeSheet();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#scrim').hidden)closeSheet();});
+const head=t=>`<div class="sh-head"><h2>${t}</h2><button class="x" aria-label="關閉">×</button></div>`;
+
+/* ===== 詳細資料 ===== */
+const telHref=v=>'tel:'+String(v).replace(/[^\d+]/g,'');
+function link(k,v,c){
+  if(k==='手機')return `<a href="${telHref(v)}">${esc(v)}</a>`;
+  if(k==='電話')return `<a href="${telHref(v)}${c['分機']?','+esc(c['分機'].replace(/\D.*$/,'')):''}">${esc(v)}</a>`;
+  if(k==='Email')return `<a href="mailto:${esc(v)}">${esc(v)}</a>`;
+  if(k==='網站'){const u=/^https?:/i.test(v)?v:'https://'+v;return `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(v)}</a>`;}
+  if(k==='地址')return `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v)}" target="_blank" rel="noopener">${esc(v)}</a>`;
+  if(k==='分類標籤')return `<span class="tags">${splitTags(v).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</span>`;
+  return esc(v);
+}
+function openDetail(i){
+  const c=cards.find(x=>x._i===i);if(!c)return;
+  const 名=c['姓名']||c['英文姓名']||'名片';
+  const mono=['手機','電話','分機','傳真','統一編號','建檔日期','最後更新'];
+  const rows=['姓名',...顯示欄].filter(k=>c[k]&&!(k==='英文姓名'&&c[k]===c['姓名'])).map(k=>
+    `<div class="row"><div class="k">${k}</div><div class="v ${mono.includes(k)?'mono':''}">${link(k,c[k],c)}</div>${['建檔日期','最後更新','分類標籤'].includes(k)?'':`<button class="cp" data-copy="${esc(c[k])}" data-what="${k}">複製</button>`}</div>`).join('');
+  const same=c['公司']?cards.filter(x=>x!==c&&coKey(x['公司'])===coKey(c['公司'])).length:0;
+  const tel=主電話(c);
+  openSheet(head(esc(名))+
+    `<div class="biz"><div class="bz-co">${esc(c['公司'])}${c['部門']?'・'+esc(c['部門']):''}</div>
+      <div><div class="bz-name">${esc(名)}</div>${c['英文姓名']&&c['英文姓名']!==c['姓名']?`<div class="bz-en">${esc(c['英文姓名'])}</div>`:''}<div class="bz-title">${esc(c['職稱'])}</div></div>
+      <div class="bz-line">${esc(tel)}${c['Email']?'<br>'+esc(c['Email']):''}</div></div>
+    <div class="acts">
+      ${tel?`<button class="btn primary" data-copy="${esc(tel)}" data-what="電話">${圖.copy}複製電話</button>`:''}
+      ${c['Email']?`<button class="btn primary" data-copy="${esc(c['Email'])}" data-what="Email">${圖.copy}複製 Email</button>`:''}
+      ${c['手機']?`<a class="btn" href="${telHref(c['手機'])}">${圖.phone}撥打手機</a>`:c['電話']?`<a class="btn" href="${telHref(c['電話'])}">${圖.phone}撥打電話</a>`:''}
+      <button class="btn" id="dVcf">${圖.dl}下載 vCard</button>
+      ${same?`<button class="btn wide" id="dSame">查看 ${esc(c['公司'])} 的其他 ${same} 人</button>`:''}
+    </div>
+    <div class="rows">${rows}</div>`);
+  const sh=$('#sheet');
+  sh.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>copyText(b.dataset.copy,b.dataset.what));
+  $('#dVcf').onclick=()=>saveFile(檔名(名)+'.vcf',vcard(c));
+  if(same)$('#dSame').onclick=()=>{closeSheet();query=c['公司'];$('#q').value=query;$('#qClear').hidden=false;setView('company');};
+}
+
+/* ===== vCard ===== */
+const 檔名=s=>String(s).replace(/[\\/:*?"<>|]/g,'_').slice(0,60)||'名片';
+function vEsc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/([,;])/g,'\\$1');}
+function vcard(c){
+  const L=['BEGIN:VCARD','VERSION:3.0'];
+  const nm=c['姓名']||c['英文姓名']||c['公司']||'';
+  L.push('FN:'+vEsc(nm));
+  if(/^[\u4e00-\u9fff]{2,4}$/.test(c['姓名']))L.push('N:'+vEsc(c['姓名'].slice(0,1))+';'+vEsc(c['姓名'].slice(1))+';;;');else L.push('N:'+vEsc(nm)+';;;;');
+  if(c['公司']||c['部門'])L.push('ORG:'+vEsc(c['公司'])+(c['部門']?';'+vEsc(c['部門']):''));
+  if(c['職稱'])L.push('TITLE:'+vEsc(c['職稱']));
+  if(c['手機'])L.push('TEL;TYPE=CELL:'+c['手機']);
+  if(c['電話'])L.push('TEL;TYPE=WORK,VOICE:'+c['電話']+(/^\d+$/.test(c['分機'])?','+c['分機']:''));
+  if(c['傳真'])L.push('TEL;TYPE=WORK,FAX:'+c['傳真']);
+  if(c['Email'])L.push('EMAIL;TYPE=INTERNET,WORK:'+c['Email']);
+  if(c['地址'])L.push('ADR;TYPE=WORK:;;'+vEsc(c['地址'])+';;;;');
+  if(c['網站'])L.push('URL:'+(/^https?:/i.test(c['網站'])?c['網站']:'https://'+c['網站']));
+  const note=[c['分機']?'分機：'+c['分機']:'',c['英文姓名']&&c['英文姓名']!==c['姓名']?'英文名：'+c['英文姓名']:'',c['統一編號']?'統編：'+c['統一編號']:'',c['分類標籤']?'分類：'+c['分類標籤']:'',c['備註']].filter(Boolean).join('\n');
+  if(note)L.push('NOTE:'+vEsc(note));
+  L.push('END:VCARD');return L.join('\r\n')+'\r\n';
+}
+function saveFile(name,text){
+  const blob=new Blob([text],{type:'text/vcard;charset=utf-8'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),4000);toast('已下載 '+name);
+}
+
+/* ===== 工具選單 ===== */
+$('#menuBtn').onclick=()=>{
+  const r=filtered();
+  openSheet(head('工具')+`
+    <div class="menu-sec"><h3>更新資料</h3><p>${updatedAt?'雲端最後更新：'+esc(updatedAt):'從雲端重新讀取最新名片。'}</p><button class="btn" id="mRefresh">重新整理</button></div>
+    <div class="menu-sec"><h3>匯出 vCard（手機通訊錄）</h3><p>${query||tagSel?`目前篩選結果 ${r.length} 張。`:`全部 ${cards.length} 張。`}下載後點開檔案即可匯入通訊錄。</p><button class="btn" id="mVcf" ${r.length?'':'disabled'}>${圖.dl}下載 ${r.length} 張 vCard</button></div>
+    <div class="menu-sec"><h3>登出</h3><p>清除這支手機上記住的密碼與名片資料。</p><button class="btn" id="mOut">登出</button></div>
+    <p style="font-size:13px;color:var(--muted);margin:4px 2px 0">新增或修改名片：把名片照片傳給 Claude，寫進本機主檔後會自動同步到這裡。</p>`);
+  $('#mRefresh').onclick=()=>{closeSheet();重新整理(false);};
+  $('#mVcf').onclick=()=>{const d=new Date();saveFile(`CTA名片庫_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${r.length}張.vcf`,r.map(vcard).join(''));};
+  $('#mOut').onclick=()=>登出(false);
+};
+</script>
+</body>
+</html>
