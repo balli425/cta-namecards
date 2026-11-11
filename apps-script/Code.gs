@@ -4,6 +4,7 @@
  * doGet  ?pw=密碼            → 回傳名片 JSON（密碼比對 Script Properties 的 PASSWORD）
  * doPost {action:'write', key, header, rows}  → 用寫入金鑰 WRITE_KEY 覆寫「名片」工作表
  * doPost {action:'init', password, key}       → 只在兩個屬性都還沒設定時可用一次，之後永久失效
+ * doPost {action:'set_password', key, password} → 用寫入金鑰更改查詢密碼（本機 同步到Google.py --改密碼 新密碼）
  *
  * 密碼與金鑰只存在 Script Properties，程式碼裡沒有，可以放心放上 GitHub。
  */
@@ -56,9 +57,15 @@ function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return 回應_({ ok: false, error: 'bad_json' }); }
   if (body.action === 'init') return 初始化_(body);
-  if (body.action !== 'write') return 回應_({ ok: false, error: 'unknown_action' });
+  if (body.action !== 'write' && body.action !== 'set_password') return 回應_({ ok: false, error: 'unknown_action' });
   if (已鎖定_()) return 回應_({ ok: false, error: 'locked' });
   if (!等長比對_(body.key, 屬性_().getProperty('WRITE_KEY'))) { 記錄失敗_(); return 回應_({ ok: false, error: 'wrong_key' }); }
+  if (body.action === 'set_password') {
+    const np = String(body.password || '');
+    if (np.length < 6) return 回應_({ ok: false, error: 'too_short' });
+    屬性_().setProperty('PASSWORD', np);
+    return 回應_({ ok: true });
+  }
 
   const header = body.header, rows = body.rows;
   if (!Array.isArray(header) || !header.length || !Array.isArray(rows)) return 回應_({ ok: false, error: 'bad_data' });
