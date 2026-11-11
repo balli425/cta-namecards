@@ -92,6 +92,9 @@ main{padding-block:12px 40px}
 .it-title{color:var(--muted);font-size:13px}
 .it-co{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .it-tel{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it-addr{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.it-hit{font-size:13px;color:var(--ink);overflow-wrap:anywhere}
+.it-hit b{font-weight:500;color:var(--accent)}
 .quick{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:var(--sunk);border-radius:999px;height:30px;padding:0 11px;font-size:13px;display:inline-flex;align-items:center;gap:5px;color:var(--ink)}
 .chip svg{width:14px;height:14px}
@@ -326,6 +329,17 @@ function hl(text){
 }
 const 首字=c=>esc((c['姓名']||c['英文姓名']||c['公司']||'?').replace(/^[\s(（]+/,'').charAt(0).toUpperCase());
 const 主電話=c=>c['手機']||(c['電話']?c['電話']+(c['分機']?' #'+c['分機']:''):'');
+// 搜尋字只出現在列表沒顯示的欄位（備註、網站、傳真…）時，多顯示一行「欄位：內容」
+const 列表已顯示=['姓名','英文姓名','公司','職稱','部門','手機','電話','分機','Email','地址'];
+function 命中說明(c){
+  const toks=query.trim().split(/\s+/).map(norm).filter(Boolean);
+  if(!toks.length)return '';
+  const 已見=norm(列表已顯示.map(k=>c[k]).join('|'));
+  const 缺=toks.filter(t=>!已見.includes(t));
+  if(!缺.length)return '';
+  const 欄=搜尋欄.filter(k=>!列表已顯示.includes(k)&&c[k]&&缺.some(t=>norm(c[k]).includes(t)));
+  return 欄.map(k=>`<div class="it-hit"><b>${k}：</b>${hl(c[k].length>60?c[k].slice(0,60)+'…':c[k])}</div>`).join('');
+}
 function itemHTML(c){
   const sub=[c['職稱'],c['部門']].filter(Boolean).join('・');
   const tel=主電話(c);
@@ -335,6 +349,8 @@ function itemHTML(c){
       <div class="it-l1"><span class="it-name">${hl(c['姓名']||c['英文姓名']||'（未填姓名）')}</span>${sub?`<span class="it-title">${hl(sub)}</span>`:''}</div>
       ${c['公司']?`<div class="it-co">${hl(c['公司'])}</div>`:''}
       ${tel||c['Email']?`<div class="it-tel mono">${hl([tel,c['Email']].filter(Boolean).join('　'))}</div>`:''}
+      ${c['地址']?`<div class="it-addr">${hl(c['地址'])}</div>`:''}
+      ${命中說明(c)}
       ${tel||c['Email']?`<div class="quick">${tel?`<button class="chip" data-copy="${esc(tel)}" data-what="電話">${圖.copy}電話</button>`:''}${c['Email']?`<button class="chip" data-copy="${esc(c['Email'])}" data-what="Email">${圖.copy}Email</button>`:''}</div>`:''}
     </div></div>`;
 }
