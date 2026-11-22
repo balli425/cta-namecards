@@ -153,6 +153,29 @@ mark{background:color-mix(in srgb,var(--brand) 28%,transparent);color:inherit;bo
 .menu-sec h3{margin:0 0 4px;font-size:15px}
 .menu-sec p{margin:0 0 10px;font-size:13.5px;color:var(--muted)}
 
+/* 拍名片歸檔 */
+.iconbtn.cam{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.up-intro{margin:0 0 12px;font-size:14px;color:var(--muted)}
+.up-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:var(--surface)}
+.up-card.sent{background:var(--accent-soft);border-color:var(--accent)}
+.up-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.up-head b{flex:1;font-size:15px}
+.up-head .st{font-size:13px}
+.up-head .st.ok{color:var(--ok)} .up-head .st.err{color:var(--danger)}
+.up-del{border:1px solid var(--line);background:var(--surface);border-radius:8px;height:30px;padding:0 10px;font-size:13px}
+.up-sides{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.slot{position:relative;aspect-ratio:90/54;border:2px dashed var(--line);border-radius:10px;background:var(--sunk);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13.5px;color:var(--ink);overflow:hidden;padding:0}
+.slot small{font-size:12px;color:var(--muted)}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slot .lab{position:absolute;left:6px;top:6px;background:var(--ink);color:var(--bg);font-size:12px;padding:1px 8px;border-radius:999px}
+.slot.has{border-style:solid;border-color:var(--accent)}
+.up-merge{margin-top:8px;width:100%;height:36px;font-size:13.5px}
+.up-row{display:flex;gap:8px;margin:4px 0 12px;flex-wrap:wrap}
+.up-row .btn{flex:1;min-width:140px}
+.up-note{width:100%;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--sunk);padding:0 12px;font-size:16px;margin:4px 0 12px}
+.up-lbl{font-size:13.5px;font-weight:700;display:block}
+.up-foot{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:13.5px;color:var(--ink)}
+
 .toast{position:fixed;z-index:40;left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
 .spin{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:sp .8s linear infinite;vertical-align:-3px}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -184,6 +207,10 @@ mark{background:color-mix(in srgb,var(--brand) 28%,transparent);color:inherit;bo
         <h1>CTA 名片庫</h1>
         <small id="stat">載入中…</small>
       </div>
+      <button class="iconbtn cam" id="camBtn" aria-label="拍名片歸檔">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        <span>拍名片</span>
+      </button>
       <button class="iconbtn" id="menuBtn" aria-label="工具選單">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         <span>工具</span>
@@ -479,11 +506,125 @@ $('#menuBtn').onclick=()=>{
     <div class="menu-sec"><h3>更新資料</h3><p>${updatedAt?'雲端最後更新：'+esc(updatedAt):'從雲端重新讀取最新名片。'}</p><button class="btn" id="mRefresh">重新整理</button></div>
     <div class="menu-sec"><h3>匯出 vCard（手機通訊錄）</h3><p>${query||tagSel?`目前篩選結果 ${r.length} 張。`:`全部 ${cards.length} 張。`}下載後點開檔案即可匯入通訊錄。</p><button class="btn" id="mVcf" ${r.length?'':'disabled'}>${圖.dl}下載 ${r.length} 張 vCard</button></div>
     <div class="menu-sec"><h3>登出</h3><p>清除這支手機上記住的密碼與名片資料。</p><button class="btn" id="mOut">登出</button></div>
-    <p style="font-size:13px;color:var(--muted);margin:4px 2px 0">新增或修改名片：把名片照片傳給 Claude，寫進本機主檔後會自動同步到這裡。</p>`);
+    <p style="font-size:13px;color:var(--muted);margin:4px 2px 0">新增名片：按上方「拍名片」上傳，電腦每天自動歸檔一次；要馬上歸檔，跟 Claude 說「立即歸檔名片」。</p>`);
   $('#mRefresh').onclick=()=>{closeSheet();重新整理(false);};
   $('#mVcf').onclick=()=>{const d=new Date();saveFile(`CTA名片庫_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${r.length}張.vcf`,r.map(vcard).join(''));};
   $('#mOut').onclick=()=>登出(false);
 };
+
+/* ===== 拍名片歸檔（2026-11-22 新增）=====
+   一張名片一格：左「正面」、右「背面（沒有就空著）」。同一格＝同一張名片，上傳時放同一個資料夾。
+   照片送到匠的 Google 雲端硬碟「CTA名片庫_待歸檔」，電腦端每天歸檔一次，或匠說「立即歸檔名片」時馬上處理。 */
+let up=[], upNote='', upBusy=false, upCount=null;
+const 新代碼=()=>{const s='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';const a=crypto.getRandomValues(new Uint8Array(8));a.forEach(x=>r+=s[x%s.length]);return r;};
+const 新格=()=>({id:新代碼(),front:null,back:null,st:'',msg:''});
+async function 後台(body){
+  const r=await fetch(API,{method:'POST',body:JSON.stringify(body)});
+  if(!r.ok)throw new Error('連線失敗（'+r.status+'）');
+  const j=await r.json();
+  if(!j.ok){const e=new Error(錯誤說明[j.error]||('上傳失敗：'+j.error));e.code=j.error;throw e;}
+  return j;
+}
+// 縮到長邊 1800 像素、JPEG，夠辨識又不會太大（約 300～600 KB）
+function 處理照片(file){
+  return new Promise((ok,ng)=>{
+    const u=URL.createObjectURL(file);const img=new Image();
+    img.onload=()=>{
+      const s=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));
+      const w=Math.round(img.naturalWidth*s),h=Math.round(img.naturalHeight*s);
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(u);
+      cv.toBlob(b=>b?ok({blob:b,url:URL.createObjectURL(b)}):ng(new Error('照片轉檔失敗')),'image/jpeg',0.88);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(u);ng(new Error('讀不到這張照片'));};
+    img.src=u;
+  });
+}
+const 轉base64=b=>new Promise((ok,ng)=>{const fr=new FileReader();fr.onload=()=>ok(String(fr.result).split(',')[1]);fr.onerror=()=>ng(new Error('讀取照片失敗'));fr.readAsDataURL(b);});
+function 選照片(multiple){
+  return new Promise(ok=>{
+    const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=!!multiple;
+    inp.style.display='none';document.body.appendChild(inp);
+    inp.onchange=()=>{const f=[...(inp.files||[])];inp.remove();ok(f);};
+    inp.click();
+  });
+}
+function 釋放(p){if(p&&p.url)URL.revokeObjectURL(p.url);}
+
+function 拍名片畫面(){
+  if(!up.length)up.push(新格());
+  const 待送=up.filter(c=>c.st!=='sent'&&(c.front||c.back));
+  const 格=up.map((c,i)=>{
+    const slot=(side,p)=>`<button class="slot ${p?'has':''}" data-slot="${i}" data-side="${side}" aria-label="${side==='front'?'拍正面':'拍背面'}">
+      ${p?`<img src="${p.url}" alt=""><span class="lab">${side==='front'?'正面':'背面'}</span>`:(side==='front'?'📷 拍正面<small>點這裡拍照或選照片</small>':'＋ 背面<small>單面名片就空著</small>')}</button>`;
+    const 可併=i>0&&c.st!=='sent'&&c.front&&!c.back&&up[i-1].st!=='sent'&&up[i-1].front&&!up[i-1].back;
+    const 狀態=c.st==='sent'?'<span class="st ok">✓ 已上傳</span>':c.st==='err'?`<span class="st err">${esc(c.msg||'上傳失敗')}</span>`:c.st==='busy'?'<span class="st"><span class="spin"></span> 上傳中</span>':`<span class="st">${c.front&&c.back?'雙面':c.front||c.back?'單面':''}</span>`;
+    return `<div class="up-card ${c.st==='sent'?'sent':''}">
+      <div class="up-head"><b>名片 ${i+1}</b>${狀態}${c.st!=='sent'&&c.st!=='busy'?`<button class="up-del" data-del="${i}">刪除</button>`:''}</div>
+      <div class="up-sides">${slot('front',c.front)}${slot('back',c.back)}</div>
+      ${可併?`<button class="btn up-merge" data-merge="${i}">這張是上一張（名片 ${i}）的背面</button>`:''}
+    </div>`;
+  }).join('');
+  openSheet(head('拍名片歸檔')+`
+    <p class="up-intro">一張名片一格。單面只拍「正面」；雙面兩邊都拍。拍完按「下一張名片」。</p>
+    ${格}
+    <div class="up-row">
+      <button class="btn" id="upAdd">＋ 下一張名片</button>
+      <button class="btn" id="upMany">從相簿選多張</button>
+    </div>
+    <label class="up-lbl" for="upNote">備註（這次全部套用，例：台南市建築師公會演講）</label>
+    <input class="up-note" id="upNote" type="text" value="${esc(upNote)}" placeholder="沒有就空著">
+    <button class="btn primary wide" id="upSend" ${待送.length&&!upBusy?'':'disabled'}>${upBusy?'<span class="spin"></span>&nbsp;上傳中…':`送出 ${待送.length} 張名片`}</button>
+    <div class="up-foot" id="upFoot">${upCount==null?'<span class="spin"></span>&nbsp;查詢待歸檔數量…':`雲端待歸檔：<b>${upCount}</b> 張。電腦每天自動歸檔一次；要馬上歸檔，跟 Claude 說「立即歸檔名片」。`}</div>`);
+  const sh=$('#sheet');
+  $('#upNote').oninput=e=>upNote=e.target.value;
+  sh.querySelectorAll('[data-slot]').forEach(b=>b.onclick=async()=>{
+    if(upBusy)return;
+    const c=up[+b.dataset.slot];if(!c||c.st==='sent')return;
+    const f=(await 選照片(false))[0];if(!f)return;
+    try{const p=await 處理照片(f);const k=b.dataset.side;釋放(c[k]);c[k]=p;c.st='';拍名片畫面();}catch(e){toast(e.message);}
+  });
+  sh.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const i=+b.dataset.del;釋放(up[i].front);釋放(up[i].back);up.splice(i,1);拍名片畫面();});
+  sh.querySelectorAll('[data-merge]').forEach(b=>b.onclick=()=>{const i=+b.dataset.merge;up[i-1].back=up[i].front;up.splice(i,1);toast('已併成名片 '+i+' 的背面');拍名片畫面();});
+  $('#upAdd').onclick=()=>{up=up.filter(c=>c.st!=='sent');if(!up.length||up[up.length-1].front||up[up.length-1].back)up.push(新格());拍名片畫面();};
+  $('#upMany').onclick=async()=>{
+    if(upBusy)return;
+    const fs=await 選照片(true);if(!fs.length)return;
+    up=up.filter(c=>c.st!=='sent'&&(c.front||c.back));
+    for(const f of fs){try{const g=新格();g.front=await 處理照片(f);up.push(g);}catch(e){toast(e.message);}}
+    toast(`已加入 ${fs.length} 張；雙面的請按「這張是上一張的背面」`);拍名片畫面();
+  };
+  $('#upSend').onclick=送出名片;
+}
+async function 查待歸檔(){
+  try{const j=await 後台({action:'inbox_count',pw});upCount=j.count;}catch(e){upCount=null;}
+  const f=$('#upFoot');if(f&&!$('#scrim').hidden)拍名片畫面();
+}
+async function 送出名片(){
+  if(upBusy)return;
+  const 清單=up.filter(c=>c.st!=='sent'&&(c.front||c.back));if(!清單.length)return;
+  upBusy=true;let 成功=0;
+  for(const c of 清單){
+    c.st='busy';c.msg='';拍名片畫面();
+    try{
+      const imgs=[];
+      const 正=c.front||c.back, 背=c.front?c.back:null;
+      imgs.push({side:'正面',data:await 轉base64(正.blob)});
+      if(背)imgs.push({side:'背面',data:await 轉base64(背.blob)});
+      const j=await 後台({action:'upload',pw,id:c.id,images:imgs,note:upNote.trim()});
+      c.st='sent';upCount=j.count;成功++;
+    }catch(e){
+      c.st='err';c.msg=e.message||'上傳失敗，請再按一次送出';
+      if(e.code==='wrong_password'){upBusy=false;登出(true);顯示登入('密碼已變更，請重新輸入。');return;}
+    }
+  }
+  upBusy=false;
+  const 失敗=清單.length-成功;
+  toast(失敗?`上傳 ${成功} 張，${失敗} 張失敗，請再按送出`:`已上傳 ${成功} 張名片`);
+  if(!失敗){up.forEach(c=>{釋放(c.front);釋放(c.back);});up=[];upNote='';}
+  拍名片畫面();
+}
+$('#camBtn').onclick=()=>{拍名片畫面();查待歸檔();};
 </script>
 </body>
 </html>
