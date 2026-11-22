@@ -564,14 +564,14 @@ function 拍名片畫面(){
       <div class="up-sides">${slot('front',c.front)}${slot('back',c.back)}</div>
       ${可併?`<button class="btn up-merge" data-merge="${i}">這張是上一張（名片 ${i}）的背面</button>`:''}
     </div>`;
-  }).join('');
+  }).reverse().join('');
   openSheet(head('拍名片歸檔')+`
-    <p class="up-intro">一張名片一格。單面只拍「正面」；雙面兩邊都拍。拍完按「下一張名片」。</p>
-    ${格}
+    <p class="up-intro">一張名片一格。單面只拍「正面」；雙面兩邊都拍。拍完按「下一張名片」，新的一格出現在最上面，拍好的往下排。</p>
     <div class="up-row">
       <button class="btn" id="upAdd">＋ 下一張名片</button>
       <button class="btn" id="upMany">從相簿選多張</button>
     </div>
+    ${格}
     <label class="up-lbl" for="upNote">備註（這次全部套用，例：台南市建築師公會演講）</label>
     <input class="up-note" id="upNote" type="text" value="${esc(upNote)}" placeholder="沒有就空著">
     <button class="btn primary wide" id="upSend" ${待送.length&&!upBusy?'':'disabled'}>${upBusy?'<span class="spin"></span>&nbsp;上傳中…':`送出 ${待送.length} 張名片`}</button>
